@@ -1,0 +1,14 @@
+﻿header {
+    height: 100px;
+    display: block;
+}
+
+#layout {
+    width: 600px;
+    margin: 0 auto;
+}
+
+textarea {
+    resize: none;
+    outline: none;
+}
