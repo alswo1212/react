@@ -4,12 +4,12 @@ const PageNums = ({ pageNums, setPage, totalPage }) => {
         {pageNums.length
             ? <>
                 {pageNums[0] != 0
-                    ? <button onClick={() => setPage(1)}>처음</button>
+                    ? <button onClick={() => setPage(pageNums[0])}>이전</button>
                     : null}
-                {pageNums.map(num => <button onClick={() => setPage(num + 1)}>{num + 1}</button>)}
+                {pageNums.map(num => <button onClick={() => setPage(num + 1)} key={num}>{num + 1}</button>)}
                 {pageNums[pageNums.length - 1] + 1 == totalPage
                     ? null
-                    : <button onClick={() => setPage(totalPage)}>끝</button>}
+                    : <button onClick={() => setPage(pageNums[pageNums.length - 1] + 2)}>다음</button>}
             </>
             : null
         }

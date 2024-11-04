@@ -1,15 +1,42 @@
-﻿const { useState } = require("react")
+﻿import { SERVER } from "const"
+import { authFetch } from "util/fetchUtil"
 
-const Comment = ({ userName, comment, id }) => {
+const { useState } = require("react")
+
+const Comment = ({ userName, comment, id, postRefrash }) => {
     const [newComment, setNewComment] = useState(comment)
     const [mode, setMode] = useState("view")
 
     // todo 댓글 수정 삭제 등록
     const commentModify = () => {
-
+        authFetch(`${SERVER}/api/comment/${id}`, "PUT",
+            { userName, comment: newComment },
+            async rep => {
+                if (rep.status == 200) {
+                    postRefrash()
+                    setMode("view")
+                } else {
+                    const json = await rep.json()
+                    alert(json.message)
+                    setNewComment(comment)
+                    setMode("view")
+                }
+            }
+        )
     }
     const commentRemove = () => {
-
+        authFetch(`${SERVER}/api/comment/${id}`, "DELETE", null,
+            async rep => {
+                if (rep.status == 200) {
+                    postRefrash()
+                } else {
+                    const json = await rep.json()
+                    alert(json.message)
+                    setNewComment(comment)
+                    setMode("view")
+                }
+            }
+        )
     }
 
     return <>
@@ -18,7 +45,8 @@ const Comment = ({ userName, comment, id }) => {
                 fontSize: ".8em",
                 marginRight: 7,
                 verticalAlign: "top",
-                display: "block"
+                display: "block",
+                fontWeight: "bold"
             }}
             >{userName}</span>
             {mode === 'view'
@@ -29,27 +57,30 @@ const Comment = ({ userName, comment, id }) => {
                         overflow: "auto",
                         overflowWrap: "break-word",
                         fontSize: ".9em"
-                    }}>{comment.repeat(30)}</span>
+                    }}>{comment}</span>
                     {/* todo 주인일때 수정, 삭제 버튼 보이게 */}
-                    <div style={{
-                        display: "flex",
-                        justifyContent: "space-around"
-                    }}>
-                        <button style={{
-                            width: "45%",
-                            border: "none",
-                            color: "white",
-                            background: "green",
-                            borderRadius: 5
-                        }} onClick={() => setMode("update")}>수정</button>
-                        <button style={{
-                            width: "45%",
-                            border: "none",
-                            color: "white",
-                            background: "red",
-                            borderRadius: 5
-                        }} onClick={commentRemove}>삭제</button>
-                    </div>
+                    {userName == sessionStorage.getItem("userName")
+                        ?
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-around"
+                        }}>
+                            <button style={{
+                                width: "45%",
+                                border: "none",
+                                color: "white",
+                                background: "green",
+                                borderRadius: 5
+                            }} onClick={() => setMode("update")}>수정</button>
+                            <button style={{
+                                width: "45%",
+                                border: "none",
+                                color: "white",
+                                background: "red",
+                                borderRadius: 5
+                            }} onClick={commentRemove}>삭제</button>
+                        </div>
+                        : null}
                 </>
                 : <>
                     <textarea style={{
@@ -60,7 +91,7 @@ const Comment = ({ userName, comment, id }) => {
                         overflowWrap: "break-word",
                         fontSize: ".9em",
                         resize: "none"
-                    }} value={newComment.repeat(30)}
+                    }} value={newComment}
                         onChange={e => setNewComment(e.target.value)} />
                     {/* todo 수정 시  */}
                     <div style={{

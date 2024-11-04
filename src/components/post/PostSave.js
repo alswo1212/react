@@ -1,9 +1,12 @@
-﻿import { useState } from "react";
+﻿import { SERVER } from "const";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const PostSave = () => {
+const PostSave = ({ saveTrigger }) => {
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [mode, setMode] = useState("")
+    const navi = useNavigate()
 
     const cancel = () => {
         setMode("")
@@ -14,6 +17,26 @@ const PostSave = () => {
     const saveClick = () => {
         if (mode === 'view') {
             // 저장 로직
+            const userName = sessionStorage.getItem("userName")
+            const [_, key] = document.cookie.split("=")
+            fetch(`${SERVER}/post`, {
+                method: "POST",
+                headers: {
+                    Authorization: key,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, content, userName })
+            }).then(async rep => {
+                if (rep.status == 200) {
+                    cancel()
+                    saveTrigger()
+                } else {
+                    const json = await rep.json()
+                    alert(json.msg)
+                    sessionStorage.removeItem("userName")
+                    navi("/")
+                }
+            })
         } else {
             setMode("view")
         }

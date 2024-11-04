@@ -1,16 +1,9 @@
 ﻿import { useState } from "react"
 import { SERVER } from "const"
 
-const PostLi = ({ postId, title, userName, setPost }) => {
+const PostLi = ({ postId, title, userName, getPost }) => {
     const [hover, setHover] = useState(false)
-    const getPost = () => {
-        fetch(`${SERVER}/post/${postId}`)
-            .then(rep => rep.json())
-            .then(json => {
-                setPost(json)
-                console.log(json)
-            })
-    }
+
     return <div style={{
         padding: 10,
         marginBottom: 10,
@@ -39,7 +32,7 @@ const PostLi = ({ postId, title, userName, setPost }) => {
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 cursor: "pointer",
-            }} onClick={getPost}>
+            }} onClick={() => getPost(postId)}>
                 {title}
             </span>
         </div>

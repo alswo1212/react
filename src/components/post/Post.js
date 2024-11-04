@@ -1,24 +1,60 @@
 ﻿import { useEffect, useState } from "react"
 import Comment from "./Comment"
+import { authFetch } from "util/fetchUtil"
+import { SERVER } from "const"
+import { useNavigate } from "react-router-dom"
 
-const Post = ({ postId, title, content, userName, comments }) => {
+const Post = ({ postId, title, content, userName, comments, getPost, deleteRefrash }) => {
     const [mode, setMode] = useState("view")
     const [newContent, setNewContent] = useState(content)
     const [newTitle, setNewTitle] = useState(title)
     const [newComment, setNewComment] = useState("")
+
     useEffect(() => {
         setMode('view')
+        setNewComment("")
+        setNewTitle(title)
+        setNewContent(content)
     }, [postId])
+
+    const postRefrash = () => {
+        getPost(postId)
+        setMode("view")
+    }
 
     // 댓글 저장, 게시글 수정, 삭제
     const commentSave = () => {
-
+        authFetch(`${SERVER}/api/comment`, "POST",
+            { comment: newComment, postId },
+            async rep => {
+                if (rep.status == 200) {
+                    postRefrash()
+                    setNewComment("")
+                } else {
+                    const json = await rep.json()
+                    alert(json.message)
+                }
+            })
     }
     const postModify = () => {
-
+        authFetch(`${SERVER}/post/${postId}`, "PUT",
+            { postId, content: newContent, title: newTitle, userName },
+            async rep => {
+                if (!rep.ok) {
+                    const json = await rep.json()
+                    alert(json.message)
+                }
+                postRefrash()
+            }
+        )
     }
     const postRemove = () => {
-
+        authFetch(`${SERVER}/post/${postId}`, "DELETE",
+            null, rep => {
+                if (rep.ok)
+                    deleteRefrash()
+            }
+        )
     }
 
     const postModifyCancel = () => {
@@ -43,14 +79,18 @@ const Post = ({ postId, title, content, userName, comments }) => {
                         fontSize: "1.1em",
                         padding: 10
                     }}>
-                        <div style={{ float: "right" }}>
-                            <button style={{
-                                fontSize: ".6em",
-                                marginRight: 10
-                            }}
-                                onClick={() => setMode("update")}>수정</button>
-                            <button style={{ fontSize: ".6em" }}>삭제</button>
-                        </div>
+                        {userName == sessionStorage.getItem("userName")
+                            ? <div style={{ float: "right" }}>
+                                <button style={{
+                                    fontSize: ".6em",
+                                    marginRight: 10
+                                }}
+                                    onClick={() => setMode("update")}>수정</button>
+                                <button style={{ fontSize: ".6em" }}
+                                    onClick={postRemove}>삭제</button>
+                            </div>
+                            : null}
+
                         <div style={{
                             width: 400,
                             display: "inline-block"
@@ -73,7 +113,7 @@ const Post = ({ postId, title, content, userName, comments }) => {
                             fontSize: ".6em",
                             marginRight: 10
                         }}
-                            onClick={() => { }}>수정</button>
+                            onClick={postModify}>수정</button>
                         <button style={{ fontSize: ".6em" }}
                             onClick={postModifyCancel}>수정취소</button>
                     </div>
@@ -94,26 +134,28 @@ const Post = ({ postId, title, content, userName, comments }) => {
                     ></textarea>
                 </>
             }
-            {comments.map(comm => <Comment {...comm} />)}
-            {/* todo 로그인 되어있을 때 댓글 작성란 보이게 */}
-            <div>
-                <textarea value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    style={{
-                        width: 392,
-                        fontSize: ".9em",
-                        minHeight: 60,
-                        resize: "none",
-                        outline: "none"
-                    }} />
-                <button style={{
-                    color: "white",
-                    background: "blue",
-                    border: "none",
-                    width: 400,
-                    borderRadius: 5
-                }} onClick={() => { }}>댓글 등록</button>
-            </div>
+            {comments.map(comm => <Comment {...comm} postRefrash={postRefrash} key={comm.id} />)}
+            {sessionStorage.getItem("userName")
+                ?
+                <div>
+                    <textarea value={newComment}
+                        onChange={e => setNewComment(e.target.value)}
+                        style={{
+                            width: 392,
+                            fontSize: ".9em",
+                            minHeight: 60,
+                            resize: "none",
+                            outline: "none"
+                        }} />
+                    <button style={{
+                        color: "white",
+                        background: "blue",
+                        border: "none",
+                        width: 400,
+                        borderRadius: 5
+                    }} onClick={commentSave}>댓글 등록</button>
+                </div>
+                : null}
         </div>
     </>
 }

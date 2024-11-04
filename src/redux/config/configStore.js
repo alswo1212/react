@@ -2,6 +2,8 @@
 import { combineReducers } from "redux";
 
 import counter from "modules/paging";
+import setLocation from "modules/loca";
+import login from "modules/user";
 
 /*
 1. createStore()
@@ -15,7 +17,7 @@ import counter from "modules/paging";
 combineReducers은 여러 개의 독립적인 reducer의 반환 값을 하나의 상태 객체로 만들어줌
 */
 
-const rootReducer = combineReducers({ counter });
+const rootReducer = combineReducers({ counter, setLocation, login });
 const store = createStore(rootReducer);
 
 export default store; 

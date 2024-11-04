@@ -4,6 +4,8 @@ import PostLi from "components/post/PostLi";
 import Post from "../components/post/Post";
 import PageNums from "../components/post/PageNums"
 import PostSave from "components/post/PostSave";
+import { useDispatch, useSelector } from "react-redux";
+import { home } from "modules/loca";
 
 const PostList = () => {
     const [posts, setPosts] = useState([])
@@ -11,11 +13,25 @@ const PostList = () => {
     const [post, setPost] = useState(null)
     const [pageNums, setPageNums] = useState([])
     const [totalPage, setTotalPage] = useState(0)
+    const [saveCnt, setSaveCnt] = useState(0)
+    const saveTrigger = () => setSaveCnt(it => it + 1)
+    const deleteRefrash = () => {
+        saveTrigger()
+        setPost(null)
+    }
+
+    const nowPath = useSelector(state => state.setLocation.path)
+    const dispatch = useDispatch()
+    const getPost = (postId) => {
+        fetch(`${SERVER}/post/${postId}`)
+            .then(rep => rep.json())
+            .then(json => setPost(json))
+    }
+
     useEffect(() => {
         fetch(`${SERVER}/post?page=${page}`)
             .then(rep => rep.json())
             .then(json => {
-                console.log(json)
                 setPosts(json.content)
                 const start = json.number - (json.number % 10)
                 const newPageNums = []
@@ -25,16 +41,17 @@ const PostList = () => {
                 setPageNums(newPageNums)
                 setTotalPage(json.totalPages)
             })
-    }, [page])
+        dispatch(home())
+    }, [page, saveCnt])
     return (
         <>
             <div>
-                {posts.map(post => <PostLi {...post} setPost={setPost} key={post.postId} />)}
+                {posts.map(post => <PostLi {...post} setPost={setPost} key={post.postId} getPost={getPost} />)}
             </div>
             <PageNums pageNums={pageNums} totalPage={totalPage} setPage={setPage} />
-            <PostSave />
+            <PostSave saveTrigger={saveTrigger} />
             {post ?
-                <Post {...post} />
+                <Post {...post} getPost={getPost} deleteRefrash={deleteRefrash} />
                 : <></>
             }
         </>
